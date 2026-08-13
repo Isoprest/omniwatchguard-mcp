@@ -1,5 +1,5 @@
 # OmniWatchGuard MCP Server
-
+[![smithery badge](https://smithery.ai/badge/isoprest/omniwatchguard)](https://smithery.ai/servers/isoprest/omniwatchguard)
 Model Context Protocol (MCP) server for [OmniWatchGuard](https://omniwatchguard.com) — AI-powered website change monitoring. Connect Claude, Cursor, or any MCP-compatible client directly to your OmniWatchGuard account to manage monitors and alerts in natural language.
 
 **Endpoint:** `https://mcp.omniwatchguard.com/mcp` (Streamable HTTP)
