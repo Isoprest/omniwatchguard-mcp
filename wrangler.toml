@@ -1,0 +1,8 @@
+name = "omniwatchguard-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[routes]]
+pattern = "mcp.omniwatchguard.com"
+custom_domain = true
