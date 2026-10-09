@@ -59,6 +59,18 @@ Listing the tools (`initialize`, `tools/list`) works without a key; calling a to
 }
 ```
 
+## Run locally (stdio)
+
+The same tools are available as a local stdio server, for clients that run MCP servers as a process:
+
+```
+npm ci
+npm run build
+OWG_API_KEY=owg_live_YOUR_KEY_HERE node dist/stdio.mjs
+```
+
+Without `OWG_API_KEY` the server starts and lists its tools; tool calls return an error message.
+
 ## Limits
 
 - Check intervals: 60 minutes on Starter; 15, 30 or 60 on Pro; 5, 15, 30 or 60 on Agency.
@@ -66,11 +78,11 @@ Listing the tools (`initialize`, `tools/list`) works without a key; calling a to
 
 ## Self-hosting
 
-The server is a Cloudflare Worker that forwards calls to the OmniWatchGuard API.
+The hosted version is a Cloudflare Worker (`src/index.ts`) that forwards calls to the OmniWatchGuard API. Both versions share the tools in `src/server.ts`.
 
 ```
-npm install
-npx wrangler deploy --config wrangler.toml
+npm ci
+npm run deploy
 ```
 
 ## License

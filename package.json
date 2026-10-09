@@ -1,14 +1,21 @@
 {
-  "name": "mcp-server",
+  "name": "omniwatchguard-mcp",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MCP server for OmniWatchGuard website change monitoring",
+  "main": "dist/stdio.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild src/stdio.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/stdio.mjs",
+    "start": "node dist/stdio.mjs",
+    "deploy": "wrangler deploy --config wrangler.toml"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "website-monitoring",
+    "change-detection"
+  ],
+  "author": "ISOCONSULT SRL",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
@@ -17,7 +24,12 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260813.1",
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.25.12",
     "typescript": "^7.0.2",
     "wrangler": "^4.122.0"
+  },
+  "bin": {
+    "omniwatchguard-mcp": "dist/stdio.mjs"
   }
 }
