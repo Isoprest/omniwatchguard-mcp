@@ -1,36 +1,45 @@
 # OmniWatchGuard MCP Server
 
-Model Context Protocol (MCP) server for [OmniWatchGuard](https://omniwatchguard.com) — AI-powered website change monitoring. Connect Claude, Cursor, or any MCP-compatible client directly to your OmniWatchGuard account to manage monitors and alerts in natural language.
+[![smithery badge](https://smithery.ai/badge/isoprest/omniwatchguard)](https://smithery.ai/servers/isoprest/omniwatchguard)
+[![Isoprest/omniwatchguard-mcp MCP server](https://glama.ai/mcp/servers/Isoprest/omniwatchguard-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Isoprest/omniwatchguard-mcp)
 
-**Endpoint:** `https://mcp.omniwatchguard.com/mcp` (Streamable HTTP)
+Model Context Protocol (MCP) server for [OmniWatchGuard](https://omniwatchguard.com/en), a website change monitoring service. Connect Claude, Cursor or any MCP client to your OmniWatchGuard account and manage monitors and alerts in plain language.
+
+- **Endpoint:** `https://mcp.omniwatchguard.com/mcp`
+- **Transport:** Streamable HTTP (stateless)
+- **Authentication:** OmniWatchGuard API key, sent as a Bearer token
 
 ## What you can do
 
-- List and inspect your website monitors
-- Create new monitors (price, stock, text, visual, CSS, API, or SEO changes)
-- Update monitor settings (frequency, thresholds, selectors)
-- Pause, resume, or delete monitors
-- Review recent alerts across all notification channels (email, Slack, Discord, Telegram, webhook)
+- List and inspect your monitors
+- Create monitors for text, price, stock, a CSS-selected element, JSON APIs, SEO fields or SSL certificates
+- Change a monitor's URL, selector, check interval or price/stock thresholds
+- Pause, resume or delete monitors
+- Read recent alerts sent by email, webhook, Slack, Discord or Telegram
+
+Each detected change is summarised by an AI model and rated minor, major or critical. Alerts are sent for major and critical changes; minor ones are kept in the history.
 
 ## Tools
 
 | Tool | Description |
-|---|---|
+| --- | --- |
 | `list_monitors` | List all monitors with recent change activity |
-| `get_monitor` | Get full details and recent results for one monitor |
+| `get_monitor` | Get full details and the last 20 results for one monitor |
 | `create_monitor` | Create a new monitor |
 | `update_monitor` | Update an existing monitor's settings |
 | `set_monitor_status` | Pause or resume a monitor |
 | `delete_monitor` | Delete a monitor |
-| `list_alerts` | List recent notifications sent to your account |
+| `list_alerts` | List recent alerts sent to your account |
 
 ## Authentication
 
-Requires an OmniWatchGuard API key (Pro plan or higher). Generate one from your [dashboard](https://omniwatchguard.com/dashboard/api-keys), then pass it as a Bearer token:
+Tools need an OmniWatchGuard API key, available on the Pro and Agency plans. Create one in the dashboard and send it as a header:
 
 ```
 Authorization: Bearer owg_live_...
 ```
+
+Listing the tools (`initialize`, `tools/list`) works without a key; calling a tool without a key returns an error message.
 
 ## Connect from Claude Desktop
 
@@ -50,10 +59,20 @@ Authorization: Bearer owg_live_...
 }
 ```
 
-## About OmniWatchGuard
+## Limits
 
-OmniWatchGuard monitors websites for price changes, stock availability, content updates, visual layout shifts, and more — with AI-powered severity filtering to cut alert noise. [Learn more →](https://omniwatchguard.com)
+- Check intervals: 60 minutes on Starter; 15, 30 or 60 on Pro; 5, 15, 30 or 60 on Agency.
+- The crawler respects robots.txt and does not bypass anti-bot protection. Monitoring works on sites that allow automated access.
+
+## Self-hosting
+
+The server is a Cloudflare Worker that forwards calls to the OmniWatchGuard API.
+
+```
+npm install
+npx wrangler deploy --config wrangler.toml
+```
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT, see [LICENSE](LICENSE).

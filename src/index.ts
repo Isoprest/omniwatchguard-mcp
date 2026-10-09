@@ -10,7 +10,7 @@ function authHeaderFrom(context: { requestInfo?: Request }): string | null {
 
 async function owgFetch(auth: string | null, path: string, init: RequestInit = {}): Promise<any> {
   if (!auth) {
-    return { error: "Lipseste cheia API. Clientul MCP trebuie sa trimita header-ul Authorization: Bearer owg_live_..." };
+    return { error: "Missing API key. The MCP client must send the header Authorization: Bearer owg_live_... (API keys are available on the Pro and Agency plans)." };
   }
   const resp = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -24,7 +24,7 @@ async function owgFetch(auth: string | null, path: string, init: RequestInit = {
   let data: any;
   try { data = raw ? JSON.parse(raw) : {}; } catch { data = raw; }
   if (!resp.ok) {
-    return { error: (data && data.error) || `Eroare API OmniWatchGuard (status ${resp.status}).` };
+    return { error: (data && data.error) || `OmniWatchGuard API error (status ${resp.status}).` };
   }
   return data;
 }
@@ -44,7 +44,7 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "list_monitors",
     {
-      description: "Listeaza toate monitoarele OmniWatchGuard ale userului autentificat, cu numarul de schimbari din ultimele 7 zile si ultima schimbare detectata.",
+      description: "List all OmniWatchGuard monitors of the authenticated user, with the number of changes in the last 7 days and the last detected change.",
       inputSchema: {},
     },
     async () => textResult(await owgFetch(auth, "/api/monitors"))
@@ -53,8 +53,8 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "get_monitor",
     {
-      description: "Returneaza detaliile complete ale unui monitor si ultimele 20 de rezultate de verificare.",
-      inputSchema: { id: z.number().describe("ID-ul monitorului") },
+      description: "Get the full details of one monitor and its last 20 check results.",
+      inputSchema: { id: z.number().describe("Monitor ID") },
     },
     async ({ id }) => textResult(await owgFetch(auth, `/api/monitors/${id}`))
   );
@@ -62,17 +62,17 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "create_monitor",
     {
-      description: "Creeaza un monitor nou pentru o pagina web. Tipuri uzuale: text, price, stock, visual, css, api, seo. Numarul de monitoare si frecventele disponibile depind de planul userului.",
+      description: "Create a new monitor for a web page. Types: text, price, stock, css, api, seo, ssl (tech_stack and whois need the matching add-on). The number of monitors and the available check intervals depend on the user's plan.",
       inputSchema: {
-        url: z.string().describe("URL-ul complet al paginii de monitorizat"),
-        name: z.string().optional().describe("Nume afisat pentru monitor (implicit: domeniul din URL)"),
-        type: z.string().optional().describe("Tipul de monitorizare: text, price, stock, visual, css, api sau seo. Implicit: text"),
-        selector: z.string().optional().describe("Selector CSS optional pentru a limita zona monitorizata pe pagina"),
-        frequency: z.number().optional().describe("Interval de verificare in minute (5, 15, 30 sau 60, in functie de plan)"),
-        price_threshold_type: z.string().optional().describe("Pentru type=price: 'any', 'increase' sau 'decrease'"),
-        price_threshold_value: z.number().optional().describe("Pragul de pret care declanseaza alerta"),
-        stock_alert_type: z.string().optional().describe("Pentru type=stock: 'any', 'in_stock' sau 'out_of_stock'"),
-        notify_telegram: z.string().optional().describe("Chat ID Telegram pentru alerte pe acest monitor"),
+        url: z.string().describe("Full URL of the page to monitor"),
+        name: z.string().optional().describe("Display name for the monitor (default: the domain of the URL)"),
+        type: z.string().optional().describe("Monitor type: text, price, stock, css, api, seo or ssl. Default: text"),
+        selector: z.string().optional().describe("Optional CSS selector that limits monitoring to one element of the page (used with type css)"),
+        frequency: z.number().optional().describe("Check interval in minutes: 60 on Starter; 15, 30 or 60 on Pro; 5, 15, 30 or 60 on Agency"),
+        price_threshold_type: z.string().optional().describe("For type=price: 'any', 'increase' or 'decrease'"),
+        price_threshold_value: z.number().optional().describe("Price threshold that triggers an alert"),
+        stock_alert_type: z.string().optional().describe("For type=stock: 'any', 'in_stock' or 'out_of_stock'"),
+        notify_telegram: z.string().optional().describe("Telegram chat ID for this monitor's alerts (Agency plan)"),
       },
     },
     async (input) =>
@@ -87,16 +87,16 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "update_monitor",
     {
-      description: "Actualizeaza campuri ale unui monitor existent: nume, url, selector, frecventa sau praguri de pret/stoc.",
+      description: "Update fields of an existing monitor: name, URL, selector, check interval or price/stock thresholds.",
       inputSchema: {
-        id: z.number().describe("ID-ul monitorului"),
-        name: z.string().optional(),
-        url: z.string().optional(),
-        selector: z.string().optional(),
-        frequency: z.number().optional(),
-        price_threshold_type: z.string().optional(),
-        price_threshold_value: z.number().optional(),
-        stock_alert_type: z.string().optional(),
+        id: z.number().describe("Monitor ID"),
+        name: z.string().optional().describe("New display name"),
+        url: z.string().optional().describe("New page URL"),
+        selector: z.string().optional().describe("New CSS selector"),
+        frequency: z.number().optional().describe("New check interval in minutes (allowed values depend on the plan)"),
+        price_threshold_type: z.string().optional().describe("For price monitors: 'any', 'increase' or 'decrease'"),
+        price_threshold_value: z.number().optional().describe("For price monitors: threshold that triggers an alert"),
+        stock_alert_type: z.string().optional().describe("For stock monitors: 'any', 'in_stock' or 'out_of_stock'"),
       },
     },
     async ({ id, ...fields }) =>
@@ -111,10 +111,10 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "set_monitor_status",
     {
-      description: "Pune pe pauza sau reactiveaza un monitor existent.",
+      description: "Pause or resume an existing monitor.",
       inputSchema: {
-        id: z.number().describe("ID-ul monitorului"),
-        status: z.enum(["active", "paused"]).describe("Noul status al monitorului"),
+        id: z.number().describe("Monitor ID"),
+        status: z.enum(["active", "paused"]).describe("New status of the monitor"),
       },
     },
     async ({ id, status }) =>
@@ -129,8 +129,8 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "delete_monitor",
     {
-      description: "Sterge un monitor existent (soft-delete).",
-      inputSchema: { id: z.number().describe("ID-ul monitorului") },
+      description: "Delete an existing monitor.",
+      inputSchema: { id: z.number().describe("Monitor ID") },
     },
     async ({ id }) => textResult(await owgFetch(auth, `/api/monitors/${id}`, { method: "DELETE" }))
   );
@@ -138,12 +138,12 @@ function createServer(context: { requestInfo?: Request }) {
   server.registerTool(
     "list_alerts",
     {
-      description: "Listeaza ultimele notificari trimise userului (email, webhook, slack, discord, telegram), cu detalii despre schimbarea care a declansat fiecare alerta.",
+      description: "List the latest alerts sent to the user (email, webhook, Slack, Discord, Telegram), with details of the change that triggered each one.",
       inputSchema: {
         type: z
           .enum(["email", "webhook", "slack", "discord", "telegram"])
           .optional()
-          .describe("Filtru optional dupa canalul de notificare"),
+          .describe("Optional filter by alert channel"),
       },
     },
     async ({ type }) => {

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.omniwatchguard/mcp",
+  "description": "AI-powered website change monitoring - manage monitors and alerts via MCP.",
+  "version": "1.0.0",
+  "repository": {
+    "url": "https://github.com/Isoprest/omniwatchguard-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.omniwatchguard.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "OmniWatchGuard API key, format: Bearer owg_live_...",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
